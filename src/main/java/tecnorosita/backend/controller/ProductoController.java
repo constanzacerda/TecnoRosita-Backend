@@ -24,7 +24,6 @@ public class ProductoController {
         this.productoRepository = productoRepository;
     }
 
-
     @Operation(summary = "Listar todos los productos", description = "Obtiene la lista completa del catálogo para la vitrina del frontend.")
     @GetMapping
     public ResponseEntity<List<Producto>> listarProductos() {
@@ -39,18 +38,16 @@ public class ProductoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
     @Operation(summary = "Crear un producto", description = "Agrega un nuevo producto a la base de datos.", security = @SecurityRequirement(name = "bearerAuth"))
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
     public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
         Producto nuevoProducto = productoRepository.save(producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
-
     @Operation(summary = "Actualizar un producto", description = "Modifica los datos de un producto existente.", security = @SecurityRequirement(name = "bearerAuth"))
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto productoActualizado) {
         return productoRepository.findById(id).map(producto -> {
@@ -62,9 +59,8 @@ public class ProductoController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-
     @Operation(summary = "Eliminar un producto", description = "Borra físicamente un producto del sistema.", security = @SecurityRequirement(name = "bearerAuth"))
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         if (productoRepository.existsById(id)) {
