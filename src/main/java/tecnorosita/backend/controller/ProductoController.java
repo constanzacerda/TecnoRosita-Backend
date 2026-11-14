@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tecnorosita.backend.model.Producto;
-import tecnorosita.backend.repository.ProductoRepository;
+import tecnorosita.backend.service.ProductoService;
 
 import java.util.List;
 
@@ -18,22 +18,22 @@ import java.util.List;
 @Tag(name = "Catálogo de Productos", description = "API REST para la gestión de inventario")
 public class ProductoController {
 
-    private final ProductoRepository productoRepository;
+    private final ProductoService productoService;
 
-    public ProductoController(ProductoRepository productoRepository) {
-        this.productoRepository = productoRepository;
+    public ProductoController(ProductoService productoService) {
+        this.productoService = productoService;
     }
 
     @Operation(summary = "Listar todos los productos", description = "Obtiene la lista completa del catálogo para la vitrina del frontend.")
     @GetMapping
     public ResponseEntity<List<Producto>> listarProductos() {
-        return ResponseEntity.ok(productoRepository.findAll());
+        return ResponseEntity.ok(productoService.obtenerTodos());
     }
 
     @Operation(summary = "Obtener un producto por ID", description = "Busca el detalle de un producto específico mediante su identificador.")
     @GetMapping("/{id}")
     public ResponseEntity<Producto> obtenerProducto(@PathVariable Long id) {
-        return productoRepository.findById(id)
+        return productoService.obtenerPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -42,7 +42,7 @@ public class ProductoController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PostMapping
     public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
-        Producto nuevoProducto = productoRepository.save(producto);
+        Producto nuevoProducto = productoService.guardar(producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
     }
 
@@ -50,23 +50,16 @@ public class ProductoController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto productoActualizado) {
-        return productoRepository.findById(id).map(producto -> {
-            producto.setNombre(productoActualizado.getNombre());
-            producto.setPrecio(productoActualizado.getPrecio());
-            producto.setImagenUrl(productoActualizado.getImagenUrl());
-            producto.setCategoria(productoActualizado.getCategoria());
-            return ResponseEntity.ok(productoRepository.save(producto));
-        }).orElse(ResponseEntity.notFound().build());
+        return productoService.actualizar(id, productoActualizado)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Eliminar un producto", description = "Borra físicamente un producto del sistema.", security = @SecurityRequirement(name = "bearerAuth"))
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
-        if (productoRepository.existsById(id)) {
-            productoRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        return productoService.eliminar(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
+
