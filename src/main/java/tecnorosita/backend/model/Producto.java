@@ -22,6 +22,9 @@ public class Producto {
     @Column(nullable = false)
     private Integer precio;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 15")
+    private Integer stock = 15;
+
     @Column(length = 255)
     private String imagenUrl;
 

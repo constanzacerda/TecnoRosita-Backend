@@ -1,7 +1,9 @@
 package tecnorosita.backend.service;
 
 import org.springframework.stereotype.Service;
+import tecnorosita.backend.model.Categoria;
 import tecnorosita.backend.model.Producto;
+import tecnorosita.backend.repository.CategoriaRepository;
 import tecnorosita.backend.repository.ProductoRepository;
 
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.Optional;
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public List<Producto> obtenerTodos() {
@@ -25,6 +29,14 @@ public class ProductoService {
     }
 
     public Producto guardar(Producto producto) {
+        if (producto.getStock() == null) {
+            producto.setStock(15);
+        }
+        if (producto.getCategoria() != null && producto.getCategoria().getId() != null) {
+            Categoria cat = categoriaRepository.findById(producto.getCategoria().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
+            producto.setCategoria(cat);
+        }
         return productoRepository.save(producto);
     }
 
@@ -32,8 +44,15 @@ public class ProductoService {
         return productoRepository.findById(id).map(producto -> {
             producto.setNombre(productoActualizado.getNombre());
             producto.setPrecio(productoActualizado.getPrecio());
+            if (productoActualizado.getStock() != null) {
+                producto.setStock(productoActualizado.getStock());
+            }
             producto.setImagenUrl(productoActualizado.getImagenUrl());
-            producto.setCategoria(productoActualizado.getCategoria());
+            if (productoActualizado.getCategoria() != null && productoActualizado.getCategoria().getId() != null) {
+                Categoria cat = categoriaRepository.findById(productoActualizado.getCategoria().getId())
+                        .orElse(producto.getCategoria());
+                producto.setCategoria(cat);
+            }
             return productoRepository.save(producto);
         });
     }

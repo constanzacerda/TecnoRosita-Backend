@@ -30,9 +30,16 @@ public class SeguridadIntegracionTest {
 
     @Test
     public void alAccederRutaProtegidaSinToken_entoncesRetornaProhibido() throws Exception {
-        mockMvc.perform(get("/api/v1/productos")
+        mockMvc.perform(get("/api/v1/boletas")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void alAccederCatalogoPublicoSinToken_entoncesRetornaExito() throws Exception {
+        mockMvc.perform(get("/api/v1/productos")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -42,4 +49,3 @@ public class SeguridadIntegracionTest {
                 .andExpect(status().isOk());
     }
 }
-

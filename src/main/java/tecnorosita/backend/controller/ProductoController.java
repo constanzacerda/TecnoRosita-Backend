@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/productos")
-@CrossOrigin(origins = "*")
 @Tag(name = "Catálogo de Productos", description = "API REST para la gestión de inventario")
 public class ProductoController {
 
