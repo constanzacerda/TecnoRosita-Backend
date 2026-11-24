@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   tecnorosita-net:
     driver: bridge
@@ -21,6 +19,11 @@ services:
       - tecnorosita-net
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -28,11 +31,12 @@ services:
     container_name: tecnorosita_backend
     restart: on-failure
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "1405:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3307/tecnorosita_v2?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/tecnorosita_v2?allowPublicKeyRetrieval=true&useSSL=false
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -41,7 +45,9 @@ services:
 
   frontend:
     build:
-      context: ../TecnoRosita-Duoc-main/frontend
+      context: ../TecnoRosita-Duoc/frontend
+      args:
+        VITE_API_URL: http://localhost:1405/api/v1
     container_name: tecnorosita_frontend
     restart: always
     depends_on:
@@ -50,4 +56,3 @@ services:
       - "1406:80"
     networks:
       - tecnorosita-net
-
